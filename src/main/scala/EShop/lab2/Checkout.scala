@@ -1,10 +1,12 @@
 package EShop.lab2
 
-import EShop.lab2.CartActor.{ConfirmCheckoutCancelled, ConfirmCheckoutClosed}
-import akka.actor.{Actor, ActorRef, Cancellable, Props, Timers}
+import EShop.lab2.CartActor.ConfirmCheckoutClosed
+import EShop.lab2.Checkout._
+import akka.actor.{Actor, ActorRef, Cancellable, Props}
 import akka.event.{Logging, LoggingReceive}
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent._
+import ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
@@ -28,11 +30,12 @@ object Checkout {
   case object CheckOutClosed                   extends Event
   case class PaymentStarted(payment: ActorRef) extends Event
 
-  def props(cart: ActorRef) = Props(new Checkout())
+  def props(cart: ActorRef) = Props(new Checkout(cart))
 }
 
-class Checkout extends Actor with Timers {
-  import Checkout._
+class Checkout(
+  cartActor: ActorRef
+) extends Actor {
 
   private val scheduler = context.system.scheduler
   private val log       = Logging(context.system, this)
@@ -78,6 +81,7 @@ class Checkout extends Actor with Timers {
   def processingPayment(timer: Cancellable): Receive = LoggingReceive{
     case ConfirmPaymentReceived =>
       timer.cancel()
+      sender ! ConfirmCheckoutClosed
       context become closed
     case CancelCheckout =>
       context become cancelled
@@ -93,10 +97,8 @@ class Checkout extends Actor with Timers {
       context.stop(self)
   }
 
-  def closed: Receive = LoggingReceive{
-    case _ =>
-      log.info(s"Checkout is completed")
-      context.stop(self)
+  def closed: Receive = LoggingReceive {
+    case _ => context.stop(self)
   }
 
 }
