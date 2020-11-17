@@ -10,23 +10,24 @@ import scala.language.postfixOps
 object CartActor {
 
   sealed trait Command
-
-  case class AddItem(item: Any) extends Command
-
-  case class RemoveItem(item: Any) extends Command
-
-  case object ExpireCart extends Command
-
-  case object StartCheckout extends Command
-
+  case class AddItem(item: Any)        extends Command
+  case class RemoveItem(item: Any)     extends Command
+  case object ExpireCart               extends Command
+  case object StartCheckout            extends Command
   case object ConfirmCheckoutCancelled extends Command
   case object ConfirmCheckoutClosed    extends Command
   case object GetItems                 extends Command // command made to make testing easier
 
   sealed trait Event
-  case class CheckoutStarted(checkoutRef: ActorRef) extends Event
+  case class CheckoutStarted(checkoutRef: ActorRef, cart: Cart) extends Event
+  case class ItemAdded(itemId: Any, cart: Cart)                 extends Event
+  case class ItemRemoved(itemId: Any, cart: Cart)               extends Event
+  case object CartEmptied                                       extends Event
+  case object CartExpired                                       extends Event
+  case object CheckoutClosed                                    extends Event
+  case class CheckoutCancelled(cart: Cart)                      extends Event
 
-  def props() = Props(new CartActor())
+  def props = Props(new CartActor())
 }
 
 class CartActor extends Actor {
@@ -55,6 +56,7 @@ class CartActor extends Actor {
     case AddItem(item) =>
       log.info(s"Added $item to cart")
       context become nonEmpty(cart.addItem(item), scheduleTimer)
+
     case RemoveItem(item) =>
       if (cart.size != 1) {
         context become nonEmpty(cart.removeItem(item), timer)
@@ -67,11 +69,12 @@ class CartActor extends Actor {
       context become inCheckout(cart)
       val checkout = context.system.actorOf(Props(new Checkout(self)), "checkout")
       checkout ! Checkout.StartCheckout
-      sender ! CheckoutStarted(checkout)
+      sender ! CheckoutStarted(checkout, cart)
 
     case ExpireCart =>
       log.info("Cart has expired")
       context become empty
+
     case GetItems =>
       sender ! cart.items
   }
@@ -81,10 +84,12 @@ class CartActor extends Actor {
       log.info("Checkout cancelled")
       sender ! ConfirmCheckoutCancelled
       context become nonEmpty(cart, scheduleTimer)
+
     case ConfirmCheckoutClosed =>
       log.info("Checkout completed")
       sender ! ConfirmCheckoutClosed
       context become empty
+
     case GetItems =>
       sender ! cart.items
   }

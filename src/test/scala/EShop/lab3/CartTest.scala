@@ -47,6 +47,6 @@ class CartTest
     cart ! AddItem("example")
     cart ! StartCheckout
 
-    expectMsg(CheckoutStarted(_))
+    expectMsgType[CartActor.CheckoutStarted]
   }
 }
