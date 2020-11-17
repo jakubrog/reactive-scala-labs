@@ -3,7 +3,7 @@ package EShop.lab3
 import EShop.lab2.{CartActor, Checkout}
 import EShop.lab3.OrderManager._
 import EShop.lab3.Payment.DoPayment
-import akka.actor.{Actor, ActorRef}
+import akka.actor.{Actor, ActorRef, Props}
 import akka.event.LoggingReceive
 
 object OrderManager {
@@ -28,7 +28,7 @@ class OrderManager extends Actor {
 
   def uninitialized: Receive = LoggingReceive{
     case AddItem(item) =>
-      val cartRef: ActorRef = context.system.actorOf(CartActor.props())
+      val cartRef: ActorRef = context.system.actorOf(Props[CartActor])
       cartRef ! CartActor.AddItem(item)
       sender ! Done
       context become open(cartRef)
@@ -48,8 +48,8 @@ class OrderManager extends Actor {
       context become inCheckout(cartActor, sender)
   }
 
-  def inCheckout(cartActorRef: ActorRef, senderRef: ActorRef): Receive =    LoggingReceive {
-    case CartActor.CheckoutStarted(checkoutRef) =>
+  def inCheckout(cartActorRef: ActorRef, senderRef: ActorRef): Receive = LoggingReceive {
+    case CartActor.CheckoutStarted(checkoutRef, cart) =>
       cartActorRef ! Done
       senderRef ! Done
       context become inCheckout(checkoutRef)
