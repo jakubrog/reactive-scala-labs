@@ -16,6 +16,7 @@ class PersistentCheckoutTest
   with ImplicitSender
   with BeforeAndAfterAll {
 
+  val cartActor      = TestProbe().ref
   val deliveryMethod = "post"
   val paymentMethod  = "paypal"
 

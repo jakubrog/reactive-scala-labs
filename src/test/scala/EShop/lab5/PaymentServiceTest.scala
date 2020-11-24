@@ -2,13 +2,12 @@ package EShop.lab5
 
 import EShop.lab5.PaymentService.{PaymentClientError, PaymentServerError, PaymentSucceeded}
 import akka.actor.SupervisorStrategy.Stop
-import akka.actor.{Actor, ActorSystem, OneForOneStrategy, Props, SupervisorStrategy, Terminated}
-import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
+import akka.actor.{Actor, ActorSystem, OneForOneStrategy, Props, SupervisorStrategy}
 import akka.testkit.{ImplicitSender, TestActorRef, TestKit, TestProbe}
+import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
-import org.scalatest.BeforeAndAfterAll
 
 import scala.concurrent.duration._
 

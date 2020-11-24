@@ -37,7 +37,7 @@ object HelloWorldAkkaHttpServerApp extends App {
 class HelloWorldAkkaHttpServer extends HttpApp with JsonSupport {
 
   override protected def routes: Route = {
-    path("greetings") {
+    path("item") {
       post {
         entity(as[HelloWorldAkkaHttpServer.Name]) { name =>
           complete {
