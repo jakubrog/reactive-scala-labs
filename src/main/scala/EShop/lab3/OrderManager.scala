@@ -4,6 +4,7 @@ import EShop.lab2.{CartActor, Checkout}
 import EShop.lab3.OrderManager._
 import EShop.lab3.Payment.DoPayment
 import akka.actor.{Actor, ActorRef, Props}
+import akka.actor.{Actor, ActorRef, Props}
 import akka.event.LoggingReceive
 
 object OrderManager {

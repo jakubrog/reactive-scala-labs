@@ -34,6 +34,7 @@ class PersistentCheckoutTest
   it should "be in cancelled state after cancel message received in selectingDelivery State" in {
     val cartActor     = TestProbe().ref
     val id            = generatePersistenceId
+    val cartActor     = TestProbe().ref
     val checkoutActor = checkoutActorWithResponseOnStateChange(system)(cartActor, id)
 
     checkoutActor ! StartCheckout

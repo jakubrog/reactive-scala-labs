@@ -4,12 +4,16 @@ import EShop.lab3.{TypedOrderManager, TypedPayment}
 import akka.actor.Cancellable
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
-import cats.implicits.catsSyntaxOptionId
 
 import scala.language.postfixOps
 import scala.concurrent.duration._
 
 object TypedCheckout {
+
+  sealed trait Data
+  case object Uninitialized                               extends Data
+  case class SelectingDeliveryStarted(timer: Cancellable) extends Data
+  case class ProcessingPaymentStarted(timer: Cancellable) extends Data
 
   sealed trait Command
   case object StartCheckout                                                                       extends Command
@@ -18,7 +22,7 @@ object TypedCheckout {
   case object ExpireCheckout                                                                      extends Command
   case class SelectPayment(payment: String, orderManagerRef: ActorRef[TypedOrderManager.Command]) extends Command
   case object ExpirePayment                                                                       extends Command
-  case object ConfirmPaymentReceived                                                              extends Command
+  case object ReceivePayment                                                                      extends Command
 
   sealed trait Event
   case object CheckOutClosed                                         extends Event

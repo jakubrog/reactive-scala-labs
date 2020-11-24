@@ -12,6 +12,11 @@ import scala.language.postfixOps
 
 object Checkout {
 
+  sealed trait Data
+  case object Uninitialized                               extends Data
+  case class SelectingDeliveryStarted(timer: Cancellable) extends Data
+  case class ProcessingPaymentStarted(timer: Cancellable) extends Data
+
   sealed trait Command
   case object StartCheckout                       extends Command
   case class SelectDeliveryMethod(method: String) extends Command
@@ -19,7 +24,8 @@ object Checkout {
   case object ExpireCheckout                      extends Command
   case class SelectPayment(payment: String)       extends Command
   case object ExpirePayment                       extends Command
-  case object ConfirmPaymentReceived              extends Command
+  case object ReceivePayment                      extends Command
+  case object Expire                              extends Command
 
   sealed trait Event
   case object CheckOutClosed                        extends Event
@@ -77,7 +83,7 @@ class Checkout(
   }
 
   def processingPayment(timer: Cancellable): Receive = LoggingReceive{
-    case ConfirmPaymentReceived =>
+    case ReceivePayment =>
       timer.cancel()
       sender ! ConfirmCheckoutClosed
       context become closed
